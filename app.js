@@ -10,9 +10,9 @@ var debug                = require('debug')('roon-extension-denon'),
 
 var denon = {};
 var roon = new RoonApi({
-    extension_id:        'org.pruessmann.roon.denon.avrx',
+    extension_id:        'org.pruessmann.roon.denon',
     display_name:        'Denon/Marantz Volume Control',
-    display_version:     "0.0.1",
+    display_version:     '0.0.1',
     publisher:           'Doc Bobo',
     email:               'boris@pruessmann.org',
     website:             'https://github.com/docbobo/roon-extension-denon',
