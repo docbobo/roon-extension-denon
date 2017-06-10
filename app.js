@@ -11,7 +11,7 @@ var debug                = require('debug')('roon-extension-denon'),
 var denon = {};
 var roon = new RoonApi({
     extension_id:        'org.pruessmann.roon.denon',
-    display_name:        'Denon/Marantz Volume Control',
+    display_name:        'Denon/Marantz AVR',
     display_version:     '0.0.1',
     publisher:           'Doc Bobo',
     email:               'boris@pruessmann.org',
@@ -31,7 +31,8 @@ function make_layout(settings) {
 
     l.layout.push({
         type:      "string",
-        title:     "Hostname/IP address",
+        title:     "Host name or IP Address",
+        subtitle:  "The IP address or hostname of the Denon/Marantz receiver.",
         maxlength: 256,
         setting:   "hostname",
     });
@@ -73,7 +74,7 @@ function setup_denon_connection(host) {
     if (!host) {
         svc_status.set_status("Not configured, please check settings.", true);
     } else {
-        debug("Connecting to AVR...");
+        debug("Connecting to receiver...");
         svc_status.set_status("Connecting to " + host + "...", false);
 
         denon.client = new Denon.DenonClient(host);
@@ -97,28 +98,28 @@ function setup_denon_connection(host) {
 
         denon.client.on('close', (had_error) => {
             debug('Received onClose(%O): Reconnecting...', had_error);
-            svc_status.set_status("Connection closed by AVR. Reconnecting...", true);
+            svc_status.set_status("Connection closed by receiver. Reconnecting...", true);
 
             if (!denon.reconnect) {
                 denon.reconnect = setTimeout(() => {
                     denon.client.connect();
                     denon.reconnect = null;
 
-                    svc_status.set_status("Connected to Denon AVR", false);
+                    svc_status.set_status("Connected to receiver", false);
                 }, 1000);
             }
         });
 
         denon.client.connect().then(() => {
                 create_volume_control(denon).then(() => {
-                    svc_status.set_status("Connected to Denon AVR", false);
+                    svc_status.set_status("Connected to receiver", false);
                 });
             }).catch((error) => {
                 debug("setup_denon_connection: Error during setup. Retrying...");
 
                 // TODO: Fix error message
                 console.log(error);
-                svc_status.set_status("Could not connect Denon AVR: " + error, true);
+                svc_status.set_status("Could not connect receiver: " + error, true);
             });
 
         denon.keepalive = setInterval(() => {
@@ -136,7 +137,7 @@ function create_volume_control(denon) {
     if (!denon.volume_control) {
         denon.state = {
             // TODO: Fix display name
-            display_name: "Denon AVR",
+            display_name: "Main Zone",
             volume_type:  "db",
             volume_min:   -79.5,
             volume_step:  0.5,
@@ -201,7 +202,7 @@ function create_volume_control(denon) {
             denon.state.is_muted = val === Denon.Options.MuteOptions.On;
             if (old_is_muted != denon.state.is_muted) {
                 debug("mute differs - updating");
-                denon.volume_control.update_state({});
+                denon.volume_control.update_state({ is_muted: denon.state.is_muted });
             }
         });
 
@@ -212,7 +213,7 @@ function create_volume_control(denon) {
             denon.state.volume_value = val - 80;
             if (old_volume_value != denon.state.volume_value) {
                 debug("masterVolume differs - updating");
-                denon.volume_control.update_state({});
+                denon.volume_control.update_state({ volume_value: denon.state.volume_value });
             }
         });
 
@@ -223,7 +224,7 @@ function create_volume_control(denon) {
             denon.state.volume_max = val - 80;
             if (old_volume_max != denon.state.volume_max) {
                 debug("masterVolumeMax differs - updating");
-                denon.volume_control.update_state({});
+                denon.volume_control.update_state({ volume_max: denon.state.volume_max });
             }
         });
     });
