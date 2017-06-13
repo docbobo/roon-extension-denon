@@ -7,7 +7,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "debug": "^2.1.0",
-    "denon-client": "github:lmoe/node-denon-client"
+    "denon-client": "github:lmoe/node-denon-client",
     "node-roon-api": "github:roonlabs/node-roon-api",
     "node-roon-api-settings": "github:roonlabs/node-roon-api-settings",
     "node-roon-api-status": "github:roonlabs/node-roon-api-status",
