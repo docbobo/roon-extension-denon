@@ -12,7 +12,7 @@ var denon = {};
 var roon = new RoonApi({
     extension_id:        'org.pruessmann.roon.denon',
     display_name:        'Denon/Marantz AVR',
-    display_version:     '0.0.1',
+    display_version:     '0.0.3',
     publisher:           'Doc Bobo',
     email:               'boris@pruessmann.org',
     website:             'https://github.com/docbobo/roon-extension-denon',
@@ -136,7 +136,6 @@ function create_volume_control(denon) {
     var result = denon.client;
     if (!denon.volume_control) {
         denon.state = {
-            // TODO: Fix display name
             display_name: "Main Zone",
             volume_type:  "db",
             volume_min:   -79.5,
