@@ -98,30 +98,45 @@ function setup_denon_connection(host) {
 
         denon.client.on('close', (had_error) => {
             debug('Received onClose(%O): Reconnecting...', had_error);
+            if (denon.keepalive) { clearInterval(denon.keepalive); denon.keepalive = null; }
+            if (denon.volume_control) { denon.volume_control.destroy(); delete(denon.volume_control); }
+            denon.client.removeAllListeners('muteChanged').removeAllListeners('masterVolumeChanged').removeAllListeners('masterVolumeMaxChanged');
+
             svc_status.set_status("Connection closed by receiver. Reconnecting...", true);
 
             if (!denon.reconnect) {
                 denon.reconnect = setTimeout(() => {
-                    denon.client.connect();
-                    denon.reconnect = null;
+                    denon.client.connect().then(() => {
+                        denon.reconnect = null;
+                        svc_status.set_status("Connected to receiver", false);
+                    }).catch(() => {
 
-                    svc_status.set_status("Connected to receiver", false);
+                        debug("setup_denon_connection: Error during setup. Retrying...");
+
+                        // TODO: Fix error message
+                        console.log(error);
+                        svc_status.set_status("Could not connect receiver: " + error, true);
+
+                    });
+
                 }, 1000);
             }
         });
 
-        denon.client.connect().then(() => {
-                create_volume_control(denon).then(() => {
-                    svc_status.set_status("Connected to receiver", false);
-                });
-            }).catch((error) => {
-                debug("setup_denon_connection: Error during setup. Retrying...");
+        denon.client.connect().catch((error) => {
+            debug("setup_denon_connection: Error during setup. Retrying...");
 
-                // TODO: Fix error message
-                console.log(error);
-                svc_status.set_status("Could not connect receiver: " + error, true);
+            // TODO: Fix error message
+            console.log(error);
+            svc_status.set_status("Could not connect receiver: " + error, true);
+        });
+
+        denon.client.on('connect', () => {
+            create_volume_control(denon).then(() => {
+                svc_status.set_status("Connected to receiver", false);
             });
-
+        });
+        
         denon.keepalive = setInterval(() => {
             // Make regular calls to getBrightness for keep-alive.
             denon.client.getBrightness().then((val) => {
@@ -133,64 +148,61 @@ function setup_denon_connection(host) {
 
 function create_volume_control(denon) {
     debug("create_volume_control: volume_control=%o", denon.volume_control)
-    var result = denon.client;
-    if (!denon.volume_control) {
-        denon.state = {
-            display_name: "Main Zone",
-            volume_type:  "db",
-            volume_min:   -79.5,
-            volume_step:  0.5,
-        };
+    denon.state = {
+        display_name: "Main Zone",
+        volume_type:  "db",
+        volume_min:   -79.5,
+        volume_step:  0.5,
+    };
 
-        var device = {
-            state: denon.state,
-            set_volume: function (req, mode, value) {
-                debug("set_volume: mode=%s value=%d", mode, value);
+    var device = {
+        state: denon.state,
+        set_volume: function (req, mode, value) {
+            debug("set_volume: mode=%s value=%d", mode, value);
 
-                let newvol = mode == "absolute" ? value : (state.volume_value + value);
-                if      (newvol < this.state.volume_min) newvol = this.state.volume_min;
-                else if (newvol > this.state.volume_max) newvol = this.state.volume_max;
+            let newvol = mode == "absolute" ? value : (state.volume_value + value);
+            if      (newvol < this.state.volume_min) newvol = this.state.volume_min;
+            else if (newvol > this.state.volume_max) newvol = this.state.volume_max;
 
-                denon.client.setVolume(newvol + 80).then(() => {
-                    debug("set_volume: Succeeded.");
+            denon.client.setVolume(newvol + 80).then(() => {
+                debug("set_volume: Succeeded.");
+                req.send_complete("Success");
+            }).catch((error) => {
+                debug("set_volume: Failed with error.");
+
+                console.log(error);
+                req.send_complete("Failed");
+            });
+        },
+        set_mute: function (req, inAction) {
+            debug("set_mute: action=%s", inAction);
+
+            const action = !this.state.is_muted ? "on" : "off";
+            denon.client.setMute(action === "on" ? Denon.Options.MuteOptions.On : Denon.Options.MuteOptions.Off)
+                .then(() => {
+                    debug("set_mute: Succeeded.");
+
                     req.send_complete("Success");
                 }).catch((error) => {
-                    debug("set_volume: Failed with error.");
+                    debug("set_mute: Failed.");
 
                     console.log(error);
                     req.send_complete("Failed");
                 });
-            },
-            set_mute: function (req, inAction) {
-                debug("set_mute: action=%s", inAction);
+        }
+    };
 
-                const action = !this.state.is_muted ? "on" : "off";
-                denon.client.setMute(action === "on" ? Denon.Options.MuteOptions.On : Denon.Options.MuteOptions.Off)
-                    .then(() => {
-                        debug("set_mute: Succeeded.");
-
-                        req.send_complete("Success");
-                    }).catch((error) => {
-                        debug("set_mute: Failed.");
-
-                        console.log(error);
-                        req.send_complete("Failed");
-                    });
-            }
-        };
-
-        result = denon.client.getVolume().then((val) => {
-            denon.state.volume_value = val - 80;
-            return denon.client.getMaxVolume();
-        }).then((val) => {
-            denon.state.volume_max = val - 80;
-            return denon.client.getMute();
-        }).then((val) => {
-            debug("Registering volume control extension");
-            denon.state.is_muted = (val === Denon.Options.MuteOptions.On);
-            denon.volume_control = svc_volume_control.new_device(device);
-        });
-    }
+    let result = denon.client.getVolume().then((val) => {
+        denon.state.volume_value = val - 80;
+        return denon.client.getMaxVolume();
+    }).then((val) => {
+        denon.state.volume_max = val - 80;
+        return denon.client.getMute();
+    }).then((val) => {
+        debug("Registering volume control extension");
+        denon.state.is_muted = (val === Denon.Options.MuteOptions.On);
+        denon.volume_control = svc_volume_control.new_device(device);
+    });
 
     return result.then(() => {
         debug("Subscribing to events from receiver");
