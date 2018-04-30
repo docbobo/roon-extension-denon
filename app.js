@@ -8,8 +8,8 @@ var debug                = require('debug')('roon-extension-denon'),
     RoonApiStatus        = require('node-roon-api-status'),
     RoonApiVolumeControl = require('node-roon-api-volume-control'),
     RoonApiSourceControl = require('node-roon-api-source-control'),
-    fetch = require('node-fetch'),
-    parse = require('fast-xml-parser');
+    fetch                = require('node-fetch'),
+    parse                = require('fast-xml-parser');
 
 var denon = {};
 var roon = new RoonApi({
@@ -61,23 +61,6 @@ function make_layout(settings) {
     return l;
 }
 
-function probeInputs(settings) {
-
-    let inputs = (settings.hostname ?
-        queryInputs(settings.hostname)
-        .then(inputs => {
-            delete settings.err;
-            settings.inputs = inputs
-        }) : Promise.resolve())
-
-        .catch(err => {
-            settings.err = err.message;
-        })
-        .then(() => {
-            return settings;
-        });
-    return inputs;
-}
 
 var svc_settings = new RoonApiSettings(roon, {
     get_settings: function(cb) {
@@ -104,6 +87,32 @@ var svc_settings = new RoonApiSettings(roon, {
     }
 });
 
+var svc_status = new RoonApiStatus(roon);
+var svc_volume_control = new RoonApiVolumeControl(roon);
+var svc_source_control = new RoonApiSourceControl(roon);
+
+roon.init_services({
+    provided_services: [ svc_status, svc_settings, svc_volume_control, svc_source_control ]
+});
+
+function probeInputs(settings) {
+
+    let inputs = (settings.hostname ?
+        queryInputs(settings.hostname)
+        .then(inputs => {
+            delete settings.err;
+            settings.inputs = inputs
+        }) : Promise.resolve())
+
+        .catch(err => {
+            settings.err = err.message;
+        })
+        .then(() => {
+            return settings;
+        });
+    return inputs;
+}
+
 function queryInputs(hostname) {
 
     return fetch('http://' + hostname + '/goform/formMainZone_MainZoneXml.xml',{timeout: 2000})
@@ -125,19 +134,10 @@ function queryInputs(hostname) {
             return outs;
         });
 }
-var svc_status = new RoonApiStatus(roon);
-var svc_volume_control = new RoonApiVolumeControl(roon);
-var svc_source_control = new RoonApiSourceControl(roon);
-
-roon.init_services({
-    provided_services: [ svc_status, svc_settings, svc_volume_control, svc_source_control ]
-});
 
 function setup_denon_connection(host) {
     debug("setup_denon_connection (" + host + ")");
 
-    if (denon.volume_control) { denon.volume_control.destroy(); delete(denon.volume_control); }
-    if (denon.source_control) { denon.source_control.destroy(); delete(denon.source_control); }
     if (denon.keepalive) { clearInterval(denon.keepalive); denon.keepalive = null; }
     if (denon.client) { denon.client.removeAllListeners('close'); denon.client.disconnect(); delete(denon.client); }
 
@@ -168,8 +168,6 @@ function setup_denon_connection(host) {
 
         denon.client.on('close', (had_error) => {
             debug('Received onClose(%O): Reconnecting...', had_error);
-            if (denon.volume_control) { denon.volume_control.destroy(); delete(denon.volume_control); }
-            if (denon.source_control) { denon.source_control.destroy(); delete(denon.source_control); }
 
             if(denon.client) {
             svc_status.set_status("Connection closed by receiver. Reconnecting...", true);
@@ -284,50 +282,51 @@ function check_status(power, input) {
 
 function create_volume_control(denon) {
     debug("create_volume_control: volume_control=%o", denon.volume_control)
-    denon.volume_state = {
-        display_name: "Main Zone",
-        volume_type:  "db",
-        volume_min:   -79.5,
-        volume_step:  0.5,
-    };
+    if(!denon.volume_control) {
+        denon.volume_state = {
+            display_name: "Main Zone",
+            volume_type:  "db",
+            volume_min:   -79.5,
+            volume_step:  0.5,
+        };
 
-    var device = {
-        state: denon.volume_state,
-        set_volume: function (req, mode, value) {
-            debug("set_volume: mode=%s value=%d", mode, value);
+        var device = {
+            state: denon.volume_state,
+            set_volume: function (req, mode, value) {
+                debug("set_volume: mode=%s value=%d", mode, value);
 
-            let newvol = mode == "absolute" ? value : (state.volume_value + value);
-            if      (newvol < this.state.volume_min) newvol = this.state.volume_min;
-            else if (newvol > this.state.volume_max) newvol = this.state.volume_max;
+                let newvol = mode == "absolute" ? value : (state.volume_value + value);
+                if      (newvol < this.state.volume_min) newvol = this.state.volume_min;
+                else if (newvol > this.state.volume_max) newvol = this.state.volume_max;
 
-            denon.client.setVolume(newvol + 80).then(() => {
-                debug("set_volume: Succeeded.");
-                req.send_complete("Success");
-            }).catch((error) => {
-                debug("set_volume: Failed with error.");
-
-                console.log(error);
-                req.send_complete("Failed");
-            });
-        },
-        set_mute: function (req, inAction) {
-            debug("set_mute: action=%s", inAction);
-
-            const action = !this.state.is_muted ? "on" : "off";
-            denon.client.setMute(action === "on" ? Denon.Options.MuteOptions.On : Denon.Options.MuteOptions.Off)
-                .then(() => {
-                    debug("set_mute: Succeeded.");
-
+                denon.client.setVolume(newvol + 80).then(() => {
+                    debug("set_volume: Succeeded.");
                     req.send_complete("Success");
                 }).catch((error) => {
-                    debug("set_mute: Failed.");
+                    debug("set_volume: Failed with error.");
 
                     console.log(error);
                     req.send_complete("Failed");
                 });
-        }
-    };
+            },
+            set_mute: function (req, inAction) {
+                debug("set_mute: action=%s", inAction);
 
+                const action = !this.state.is_muted ? "on" : "off";
+                denon.client.setMute(action === "on" ? Denon.Options.MuteOptions.On : Denon.Options.MuteOptions.Off)
+                    .then(() => {
+                        debug("set_mute: Succeeded.");
+
+                        req.send_complete("Success");
+                    }).catch((error) => {
+                        debug("set_mute: Failed.");
+
+                        console.log(error);
+                        req.send_complete("Failed");
+                    });
+            }
+        };
+    }
     let result = denon.client.getVolume().then((val) => {
         denon.volume_state.volume_value = val - 80;
         return denon.client.getMaxVolume();
@@ -335,62 +334,73 @@ function create_volume_control(denon) {
         denon.volume_state.volume_max = val - 80;
         return denon.client.getMute();
     }).then((val) => {
-        debug("Registering volume control extension");
         denon.volume_state.is_muted = (val === Denon.Options.MuteOptions.On);
-        denon.volume_control = svc_volume_control.new_device(device);
+        if (denon.volume_control) {
+            denon.volume_control.update_state(denon.volume_state);
+        } else {
+            debug("Registering volume control extension");
+            denon.volume_control = svc_volume_control.new_device(device);
+        }
     });
     return result;
 }
 
 function create_source_control(denon) {
     debug("create_source_control: source_control=%o", denon.source_control)
-    denon.source_state = {
-        display_name: "Main Zone",
-        supports_standby: true,
-        status: "",
-        Power: "",
-        Input: ""
-    };
+    if(!denon.source_control) {
+        denon.source_state = {
+            display_name: "Main Zone",
+            supports_standby: true,
+            status: "",
+            Power: "",
+            Input: ""
+        };
 
-    var device = {
-        state: denon.source_state,
-        convenience_switch: function (req) {
-            if (denon.source_state.Power === "STANDBY") {
-                denon.client.setPower('ON');
-            }
+        var device = {
+            state: denon.source_state,
+            convenience_switch: function (req) {
+                if (denon.source_state.Power === "STANDBY") {
+                    denon.client.setPower('ON');
+                }
 
-            if (denon.source_state.Input == mysettings.setsource) {
-                req.send_complete("Success");
-            } else {
-                denon.client.setInput(mysettings.setsource).then(() => {
+                if (denon.source_state.Input == mysettings.setsource) {
                     req.send_complete("Success");
-                }).catch((error) => {
-                    debug("set_source: Failed with error.");
-                    req.send_complete("Failed");
+                } else {
+                    denon.client.setInput(mysettings.setsource).then(() => {
+                        req.send_complete("Success");
+                    }).catch((error) => {
+                        debug("set_source: Failed with error.");
+                        req.send_complete("Failed");
+                    });
+                }
+            },
+            standby: function (req) {
+                denon.client.getPower().then((val) => {
+                    denon.client.setPower(val === 'STANDBY' ? "ON" : "STANDBY").then(() => {
+                        req.send_complete("Success");
+                    }).catch((error) => {
+                        debug("set_standby: Failed with error.");
+
+                        console.log(error);
+                        req.send_complete("Failed");
+                    });
                 });
             }
-        },
-        standby: function (req) {
-            denon.client.getPower().then((val) => {
-                denon.client.setPower(val === 'STANDBY' ? "ON" : "STANDBY").then(() => {
-                    req.send_complete("Success");
-                }).catch((error) => {
-                    debug("set_standby: Failed with error.");
+        };
+    }
 
-                    console.log(error);
-                    req.send_complete("Failed");
-                });
-            });
-        }
-    };
     let result = denon.client.getPower().then((val) => {
         denon.source_state.Power = val;
         return denon.client.getInput();
     }).then((val) => {
         denon.source_state.Input = val;
         denon.source_state.status = check_status(denon.source_state.Power, denon.source_state.Input);
-        debug("Registering source control extension");
-        denon.source_control = svc_source_control.new_device(device);
+        if(denon.source_control) {
+            denon.source_control.update_state(denon.source_state);
+        } else {
+            debug("Registering source control extension");
+            denon.source_control = svc_source_control.new_device(device);
+        }
     });
     return result;
 }
