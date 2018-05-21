@@ -114,23 +114,32 @@ function probeInputs(settings) {
 }
 
 function queryInputs(hostname) {
-
-    return fetch('http://' + hostname + '/goform/formMainZone_MainZoneXml.xml',{timeout: 2000})
-        .then(res => res.text())
+    return fetch('http://' + hostname + '/goform/formMainZone_MainZoneXmlStatus.xml',{timeout: 2000})
+        .then(res => {
+            return res.text()})
         .then(body => {
 
             var result = parse.parse(body);
             var inputs = result['item']['InputFuncList']['value'];
             var renames = result['item']['RenameSource']['value'];
-            var removes = result['item']['SourceDelete']['value'];
-          
-            var outs = inputs.map((x, i) => {
-                var dict = {};
-                dict["title"] = renames[i];
-                dict["value"] = x;
-                return dict;
+            
+            var outs = (result.item.SourceDelete ? Promise.resolve(result.item.SourceDelete.value) : 
 
-            }).filter((data, index) => removes[index] == "USE" && data.value != "TV");
+                fetch('http://' + hostname + '/goform/formMainZone_MainZoneXml.xml',{timeout: 2000})
+                .then(res => res.text())
+                .then(body => {
+                    let r = parse.parse(body);
+                    return r['item']['SourceDelete']['value'];
+                })
+                )
+                .then((removes) => {
+                    return inputs.map((x, i) => {
+                        var dict = {};
+                        dict["title"] = renames[i];
+                        dict["value"] = x;
+                        return dict;
+                    }).filter((data, index) => removes[index] == "USE" && data.value != "TV");
+                });
             return outs;
         });
 }
