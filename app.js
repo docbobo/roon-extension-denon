@@ -135,7 +135,7 @@ function queryInputs(hostname) {
                 .then((removes) => {
                     return inputs.map((x, i) => {
                         var dict = {};
-                        dict["title"] = renames[i];
+                        dict["title"] = renames[i].value ? renames[i].value : renames[i];
                         dict["value"] = x;
                         return dict;
                     }).filter((data, index) => removes[index] == "USE" && data.value != "TV");
