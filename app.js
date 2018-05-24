@@ -78,9 +78,10 @@ var svc_settings = new RoonApiSettings(roon, {
 
                 if(!l.has_error && !isdryrun) {
                     var old_hostname = mysettings.hostname;
+                    var old_setsource = mysettings.setsource;
                     mysettings = l.values;
                     svc_settings.update_settings(l);
-                    if (old_hostname != mysettings.hostname) setup_denon_connection(mysettings.hostname);
+                    if (old_hostname != mysettings.hostname || old_setsource != mysettings.setsource) setup_denon_connection(mysettings.hostname);
                     roon.save_config("settings", mysettings);
                 }
             });
@@ -257,19 +258,19 @@ function setup_denon_connection(host) {
 
 function connect() {
 
-        denon.client.connect().then(() => {
-            create_volume_control(denon).then(() => {
-                create_source_control(denon).then(() =>{
-                    svc_status.set_status("Connected to receiver", false);
-                });
-            });
-        }).catch((error) => {
-            debug("setup_denon_connection: Error during setup. Retrying...");
+    denon.client.connect()
+    .then(() => create_volume_control(denon))
+    .then(() => mysettings.setsource ? create_source_control(denon) : Promise.resolve())
+    .then(() => {
+        svc_status.set_status("Connected to receiver", false);
+    })
+    .catch((error) => {
+        debug("setup_denon_connection: Error during setup. Retrying...");
 
-            // TODO: Fix error message
-            console.log(error);
-            svc_status.set_status("Could not connect receiver: " + error, true);
-        });
+        // TODO: Fix error message
+        console.log(error);
+        svc_status.set_status("Could not connect receiver: " + error, true);
+    });
 }
 
 function check_status(power, input) {
