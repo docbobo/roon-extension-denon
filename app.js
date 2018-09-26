@@ -15,7 +15,7 @@ var denon = {};
 var roon = new RoonApi({
     extension_id:        'org.pruessmann.roon.denon',
     display_name:        'Denon/Marantz AVR',
-    display_version:     '0.0.7',
+    display_version:     '0.0.8',
     publisher:           'Doc Bobo',
     email:               'boris@pruessmann.org',
     website:             'https://github.com/docbobo/roon-extension-denon',
@@ -64,7 +64,7 @@ function make_layout(settings) {
 
 var svc_settings = new RoonApiSettings(roon, {
     get_settings: function(cb) {
-        probeInputs(mysettings)    
+        probeInputs(mysettings)
             .then((settings) => {
                 cb(make_layout(settings));
             });
@@ -123,8 +123,8 @@ function queryInputs(hostname) {
             var result = parse.parse(body);
             var inputs = result['item']['InputFuncList']['value'];
             var renames = result['item']['RenameSource']['value'];
-            
-            var outs = (result.item.SourceDelete ? Promise.resolve(result.item.SourceDelete.value) : 
+
+            var outs = (result.item.SourceDelete ? Promise.resolve(result.item.SourceDelete.value) :
 
                 fetch('http://' + hostname + '/goform/formMainZone_MainZoneXml.xml',{timeout: 2000})
                 .then(res => res.text())
