@@ -15,7 +15,7 @@ var denon = {};
 var roon = new RoonApi({
     extension_id:        'org.pruessmann.roon.denon',
     display_name:        'Denon/Marantz AVR',
-    display_version:     '0.0.8',
+    display_version:     '0.0.9',
     publisher:           'Doc Bobo',
     email:               'boris@pruessmann.org',
     website:             'https://github.com/docbobo/roon-extension-denon',
@@ -302,6 +302,8 @@ function create_volume_control(denon) {
 
         var device = {
             state: denon.volume_state,
+            control_key: 1,
+
             set_volume: function (req, mode, value) {
                 debug("set_volume: mode=%s value=%d", mode, value);
 
@@ -368,6 +370,8 @@ function create_source_control(denon) {
 
         var device = {
             state: denon.source_state,
+            control_key: 2,
+            
             convenience_switch: function (req) {
                 if (denon.source_state.Power === "STANDBY") {
                     denon.client.setPower('ON');
