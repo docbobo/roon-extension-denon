@@ -115,34 +115,14 @@ function probeInputs(settings) {
 }
 
 function queryInputs(hostname) {
-    return fetch('http://' + hostname + '/goform/formMainZone_MainZoneXmlStatus.xml',{timeout: 2000})
-        .then(res => {
-            return res.text()})
-        .then(body => {
-
-            var result = parse.parse(body);
-            var inputs = result['item']['InputFuncList']['value'];
-            var renames = result['item']['RenameSource']['value'];
-
-            var outs = (result.item.SourceDelete ? Promise.resolve(result.item.SourceDelete.value) :
-
-                fetch('http://' + hostname + '/goform/formMainZone_MainZoneXml.xml',{timeout: 2000})
-                .then(res => res.text())
-                .then(body => {
-                    let r = parse.parse(body);
-                    return r['item']['SourceDelete']['value'];
-                })
-                )
-                .then((removes) => {
-                    return inputs.map((x, i) => {
-                        var dict = {};
-                        dict["title"] = renames[i].value ? renames[i].value : renames[i];
-                        dict["value"] = x;
-                        return dict;
-                    }).filter((data, index) => removes[index] == "USE" && data.value != "TV");
-                });
-            return outs;
-        });
+    return Promise.resolve(
+        Object.keys(Denon.Options.InputOptions)
+            .filter(title => title != 'Status')
+            .sort()
+            .map(title => {
+                return { title, value: Denon.Options.InputOptions[title] }
+            })
+        );
 }
 
 function setup_denon_connection(host) {
