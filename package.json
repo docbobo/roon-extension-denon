@@ -10,7 +10,7 @@
     "denon-client": "^0.2.0",
     "fast-xml-parser": "^3.9.10",
     "node-fetch": "^2.1.2",
-    "node-roon-api": "github:roonlabs/node-roon-api#fc06320225d8f919663a785e387363e441f46261",
+    "node-roon-api": "github:roonlabs/node-roon-api#b09c875738360a9413518a8a51ac70294745a926",
     "node-roon-api-settings": "github:roonlabs/node-roon-api-settings#67cd8ca156c5bcd01ea63833ceaaec6d6a79654d",
     "node-roon-api-source-control": "github:roonlabs/node-roon-api-source-control#fab2ba33f2c9249a8c9e69b6dcccfc8f333ab12e",
     "node-roon-api-status": "github:roonlabs/node-roon-api-status#504c918d6da267e03fbb4337befa71ca3d3c7526",
