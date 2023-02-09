@@ -7,7 +7,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "debug": "^3.1.0",
-    "denon-client": "^0.2.0",
+    "denon-client": "^0.2.4",
     "fast-xml-parser": "^3.9.10",
     "node-fetch": "^2.1.2",
     "node-roon-api": "github:roonlabs/node-roon-api#b09c875738360a9413518a8a51ac70294745a926",
