@@ -7,11 +7,21 @@ on:
     branches: [ master ]
 
 jobs:
+  login:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
   build:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag ghrc.io/jcharr1/roon-extension-denon:latest
+      run: docker build . --file Dockerfile --tag docker.io/jcharr1/roon-extension-denon:latest
     - name: Push the Docker imagme
-      run: docker push ghrc.io/jcharr1/roon-extension-denon:latest
+      run: docker push docker.io/jcharr1/roon-extension-denon:latest
