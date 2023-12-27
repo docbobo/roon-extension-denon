@@ -4,4 +4,4 @@ services:
     image: jcharr1/roon-extension-denon
     container_name: roon-extension-denon
     network_mode: host
-    restart: always
+    restart: unless-stopped
