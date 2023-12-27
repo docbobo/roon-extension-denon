@@ -15,7 +15,4 @@ jobs:
     registry: ghcr.io
     username: ${{ github.actor }}
     password: ${{ secrets.GITHUB_TOKEN }}
-    - name: Build the image
-      run: docker build . --tag ghcr.io/deselikem/hello-docker-gcr-demo:latest
-    -name: Push the image
-      run:  docker push ghcr.io/deselikem/hello-docker-gcr-demo:latest
+    
