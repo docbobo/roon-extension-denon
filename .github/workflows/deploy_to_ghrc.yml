@@ -1,4 +1,4 @@
-name: Publish to ghrc.io
+name: Build & Publish to ghrc.io
 
 on:
   push:
@@ -7,21 +7,17 @@ on:
     branches: [ master ]
 
 jobs:
-  login:
-    runs-on: ubuntu-latest
-    steps:
-      -
-        name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
   build:
     runs-on: ubuntu-latest
     steps:
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
     - uses: actions/checkout@v3
     - name: Build the Docker image
       run: docker build . --file Dockerfile --tag docker.io/jcharr1/roon-extension-denon:latest
-    - name: Push the Docker imagme
+    - name: Push the Docker image
       run: docker push docker.io/jcharr1/roon-extension-denon:latest
