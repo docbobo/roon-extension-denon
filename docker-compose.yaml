@@ -1,0 +1,6 @@
+version: '3'
+services:
+  roon-extension-denon:
+    image: jcharr1/roon-extension-denon
+    container_name: roon-extension-denon
+    network_mode: host
