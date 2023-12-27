@@ -15,7 +15,7 @@ var denon = {};
 var roon = new RoonApi({
     extension_id: 'org.pruessmann.roon.denon',
     display_name: 'Denon/Marantz AVR',
-    display_version: '0.0.12',
+    display_version: '0.0.13',
     publisher: 'Doc Bobo',
     email: 'boris@pruessmann.org',
     website: 'https://github.com/docbobo/roon-extension-denon',
@@ -127,11 +127,15 @@ function queryInputs(hostname) {
 function setup_denon_connection(host) {
     debug("setup_denon_connection (" + host + ")");
 
-    if (denon.keepalive) {  clearInterval(denon.keepalive);
-        denon.keepalive = null; }
-    if (denon.client) { denon.client.removeAllListeners('close');
+    if (denon.keepalive) { 
+        clearInterval(denon.keepalive);
+        denon.keepalive = null;
+    }
+    if (denon.client) {
+        denon.client.removeAllListeners('close');
         denon.client.disconnect();
-        delete(denon.client); }
+        delete(denon.client);
+    }
 
     if (!host) {
         svc_status.set_status("Not configured, please check settings.", true);
