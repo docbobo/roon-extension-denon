@@ -1,9 +1,9 @@
 name: Publish to ghrc.io
-  on:
-    push:
-      branches: [ master ]
-    pull_request:
-      branches: [ master ]
+on:
+  push: 
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
   jobs:
     build_and_publish:
       runs-on: ubuntu-latest
