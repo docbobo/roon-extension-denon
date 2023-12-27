@@ -43,4 +43,3 @@ This project provides a Roon Volume Control extension that allows you to control
 ## Notes
 
 * Setups with more than one Roon Core on the network are not currently tested.
-
