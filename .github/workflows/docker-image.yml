@@ -15,4 +15,6 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag jcharr1/roon-extension-denon
+      run: docker build . --file Dockerfile --tag docker.io/jcharr1/roon-extension-denon:latest
+    - name: Push the Docker imagme
+      run: docker push docker.io/jcharr1/roon-extension-denon:latest
