@@ -1,19 +1,19 @@
 {
-  "name": "roon-extension-denon",
-  "version": "0.0.9",
-  "description": "Volume Control extension to control Denon/Marantz AV receivers via network.",
-  "main": "app.js",
-  "author": "Doc Bobo <boris@pruessmann.org> (https://blog.pruessmann.org/)",
-  "license": "Apache-2.0",
-  "dependencies": {
-    "debug": "^3.1.0",
-    "denon-client": "^0.2.0",
-    "fast-xml-parser": "^3.9.10",
-    "node-fetch": "^2.1.2",
-    "node-roon-api": "github:roonlabs/node-roon-api#fc06320225d8f919663a785e387363e441f46261",
-    "node-roon-api-settings": "github:roonlabs/node-roon-api-settings#67cd8ca156c5bcd01ea63833ceaaec6d6a79654d",
-    "node-roon-api-source-control": "github:roonlabs/node-roon-api-source-control#fab2ba33f2c9249a8c9e69b6dcccfc8f333ab12e",
-    "node-roon-api-status": "github:roonlabs/node-roon-api-status#504c918d6da267e03fbb4337befa71ca3d3c7526",
-    "node-roon-api-volume-control": "github:roonlabs/node-roon-api-volume-control#56315d95344c9e0dc98c07c30a2de08727437b1e"
-  }
+    "name": "roon-extension-denon",
+    "version": "2025.1.1",
+    "description": "Volume Control extension to control Denon/Marantz AV receivers via network.",
+    "main": "app.js",
+    "author": "Doc Bobo <boris@pruessmann.org> (https://blog.pruessmann.org/)",
+    "license": "Apache-2.0",
+    "dependencies": {
+        "debug": "^3.1.0",
+        "denon-client": "^0.2.4",
+        "fast-xml-parser": "^3.9.10",
+        "node-fetch": "^2.1.2",
+        "node-roon-api": "github:OonihiloO/node-roon-api#e0a51b72795fe9921d7b2b12d9c0102a475faa60",
+        "node-roon-api-settings": "github:roonlabs/node-roon-api-settings#67cd8ca156c5bcd01ea63833ceaaec6d6a79654d",
+        "node-roon-api-source-control": "github:roonlabs/node-roon-api-source-control#fab2ba33f2c9249a8c9e69b6dcccfc8f333ab12e",
+        "node-roon-api-status": "github:roonlabs/node-roon-api-status#504c918d6da267e03fbb4337befa71ca3d3c7526",
+        "node-roon-api-volume-control": "github:roonlabs/node-roon-api-volume-control#56315d95344c9e0dc98c07c30a2de08727437b1e"
+    }
 }
