@@ -15,7 +15,7 @@ var denon = {};
 var roon = new RoonApi({
     extension_id: 'org.pruessmann.roon.denon',
     display_name: 'Denon/Marantz AVR',
-    display_version: '0.0.13',
+    display_version: '0.0.14',
     publisher: 'Doc Bobo',
     email: 'boris@pruessmann.org',
     website: 'https://github.com/docbobo/roon-extension-denon',
