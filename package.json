@@ -1,6 +1,6 @@
 {
     "name": "roon-extension-denon",
-    "version": "2025.1.1",
+    "version": "2025.1.2",
     "description": "Volume Control extension to control Denon/Marantz AV receivers via network.",
     "main": "app.js",
     "author": "Doc Bobo <boris@pruessmann.org> (https://blog.pruessmann.org/)",
@@ -8,7 +8,7 @@
     "dependencies": {
         "debug": "^3.1.0",
         "denon-client": "^0.2.4",
-        "fast-xml-parser": "^3.9.10",
+        "fast-xml-parser": "^4.5.1",
         "node-fetch": "^2.1.2",
         "node-roon-api": "github:OonihiloO/node-roon-api#e0a51b72795fe9921d7b2b12d9c0102a475faa60",
         "node-roon-api-settings": "github:roonlabs/node-roon-api-settings#67cd8ca156c5bcd01ea63833ceaaec6d6a79654d",
