@@ -15,9 +15,9 @@ var denon = {};
 var roon = new RoonApi({
     extension_id: 'org.pruessmann.roon.denon',
     display_name: 'Denon/Marantz AVR',
-    display_version: '0.0.14',
+    display_version: '2025.1.1',
     publisher: 'Doc Bobo',
-    email: 'boris@pruessmann.org',
+    email: 'docbobo@pm.me',
     website: 'https://github.com/docbobo/roon-extension-denon',
 });
 
@@ -59,7 +59,6 @@ function make_layout(settings) {
     }
     return l;
 }
-
 
 var svc_settings = new RoonApiSettings(roon, {
     get_settings: function(cb) {
