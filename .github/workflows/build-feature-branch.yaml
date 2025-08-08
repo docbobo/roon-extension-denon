@@ -71,7 +71,6 @@ jobs:
           tags: |
             type=raw,value=${{ steps.feature-tag.outputs.feature_tag }}
             type=raw,value=${{ steps.feature-tag.outputs.feature_tag }}-{{sha}}
-            type=ref,event=branch,prefix=${{ steps.feature-tag.outputs.feature_tag }}-
           labels: |
             org.opencontainers.image.title=Roon Extension Denon (Feature Branch)
             org.opencontainers.image.description=Roon Volume Control Extension for Denon/Marantz receivers (Feature Branch: ${{ github.ref_name }})
