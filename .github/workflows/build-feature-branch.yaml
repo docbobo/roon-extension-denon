@@ -77,14 +77,15 @@ jobs:
             org.opencontainers.image.vendor=docbobo
             org.opencontainers.image.url=https://github.com/docbobo/roon-extension-denon
             
-      - name: Build Docker image
-        id: build
+      - name: Build Docker image for testing
+        id: build-test
         uses: docker/build-push-action@v6
         with:
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           context: .
           file: ./Dockerfile
           push: false
+          load: true
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.feature-tag.outputs.feature_tag }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
@@ -112,7 +113,7 @@ jobs:
             exit 1
           fi
           
-      - name: Push Docker image
+      - name: Build and push multi-platform Docker image
         uses: docker/build-push-action@v6
         with:
           platforms: linux/amd64,linux/arm64
