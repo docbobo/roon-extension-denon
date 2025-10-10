@@ -2,98 +2,98 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Overview
+## AI Guidance
 
-This is a Roon Volume Control extension for controlling Denon/Marantz AV receivers via network connection. The extension allows volume control and muting from within Roon by connecting to the receiver's network interface.
+* Ignore GEMINI.md and GEMINI-*.md files
+* To save main context space, for code searches, inspections, troubleshooting or analysis, use code-searcher subagent where appropriate - giving the subagent full context background for the task(s) you assign it.
+* After receiving tool results, carefully reflect on their quality and determine optimal next steps before proceeding. Use your thinking to plan and iterate based on this new information, and then take the best next action.
+* For maximum efficiency, whenever you need to perform multiple independent operations, invoke all relevant tools simultaneously rather than sequentially.
+* Before you finish, please verify your solution
+* Do what has been asked; nothing more, nothing less.
+* NEVER create files unless they're absolutely necessary for achieving your goal.
+* ALWAYS prefer editing an existing file to creating a new one.
+* NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.
+* When you update or modify core context files, also update markdown documentation and memory bank
+* When asked to commit changes, exclude CLAUDE.md and CLAUDE-*.md referenced memory bank system files from any commits. Never delete these files.
 
-## Common Commands
+## Memory Bank System
 
-### Installation and Running
-- Install dependencies: `npm install`
-- Run the extension: `node .` or `node app.js`
+This project uses a structured memory bank system with specialized context files. Always check these files for relevant information before starting work:
 
-### Development
-- The main entry point is `app.js`
-- Test suite: `npm test` (Jest)
-- Coverage reports: `npm run test:coverage`
-- Uses standard Node.js debugging with the `debug` package
+### Core Context Files
 
-## Architecture
+* **CLAUDE-activeContext.md** - Current session state, goals, and progress (if exists)
+* **CLAUDE-patterns.md** - Established code patterns and conventions (if exists)
+* **CLAUDE-decisions.md** - Architecture decisions and rationale (if exists)
+* **CLAUDE-troubleshooting.md** - Common issues and proven solutions (if exists)
+* **CLAUDE-config-variables.md** - Configuration variables reference (if exists)
+* **CLAUDE-temp.md** - Temporary scratch pad (only read when referenced)
 
-### Core Components
+**Important:** Always reference the active context file first to understand what's currently being worked on and maintain session continuity.
 
-The extension is a single-file Node.js application (`app.js`) that integrates several key components:
+### Memory Bank System Backups
 
-1. **Roon API Integration**: Uses multiple Roon API modules:
-   - `node-roon-api` - Core Roon API functionality
-   - `node-roon-api-settings` - Settings management UI
-   - `node-roon-api-status` - Status reporting
-   - `node-roon-api-volume-control` - Volume control interface
-   - `node-roon-api-source-control` - Source switching interface
+When asked to backup Memory Bank System files, you will copy the core context files above and @.claude settings directory to directory @/path/to/backup-directory. If files already exist in the backup directory, you will overwrite them.
 
-2. **Denon Client Integration**: Uses `denon-client` package to communicate with Denon/Marantz receivers via TCP connection
+## Project Overview
 
-3. **Extension Services**:
-   - **Settings Service** (`svc_settings`): Manages hostname/IP configuration and input selection
-   - **Status Service** (`svc_status`): Reports connection status to Roon
-   - **Volume Control Service** (`svc_volume_control`): Handles volume and mute operations
-   - **Source Control Service** (`svc_source_control`): Manages input switching and standby
+This is a Roon Volume Control extension for controlling Denon/Marantz AV receivers over the network. It integrates with Roon's API to provide volume, mute, source selection, and power control capabilities.
 
-### Key Architecture Patterns
+### Key Architecture
 
-- **Event-driven**: Uses event listeners for Denon client state changes (power, input, volume, mute)
-- **Connection Management**: Implements automatic reconnection with keep-alive mechanism (60-second intervals)
-- **State Synchronization**: Maintains local state objects (`denon.volume_state`, `denon.source_state`) that sync with both Denon receiver and Roon
-- **Promise-based**: Async operations use Promises for Denon client communication
+**Main Components:**
+- **app.js** - Main application entry point that orchestrates Roon API services and Denon client
+- **src/zone-functions.js** - Modular zone control functions (Main Zone and Zone 2)
+- **Roon API Services:**
+  - RoonApiSettings - Configuration UI in Roon
+  - RoonApiStatus - Connection status reporting
+  - RoonApiVolumeControl - Volume and mute control (Main Zone only)
+  - RoonApiSourceControl - Input selection and standby control
+- **Denon Client** - Network communication with receiver via denon-client library
 
-### Configuration Flow
+**Event-Driven Architecture:**
+The extension listens to receiver events (powerChanged, inputChanged, muteChanged, masterVolumeChanged, zone2Changed) and updates Roon's state accordingly. Socket connection includes keep-alive mechanism and automatic reconnection on disconnect.
 
-1. Settings UI probes available inputs from Denon receiver
-2. User configures hostname/IP and desired input source
-3. Extension establishes TCP connection to receiver
-4. Creates volume and source control devices in Roon
-5. Maintains real-time synchronization via event handlers
+**Multi-Zone Support:**
+- **Main Zone** - Full control (volume, mute, input, power)
+- **Zone 2** - Power control only (no volume control)
+- Configurable "Power Off Behavior" to turn off both zones or selected zone only
 
-### Connection Lifecycle
+**State Management:**
+- `denon.volume_state` - Tracks volume level, mute status, min/max values
+- `denon.source_state` - Tracks power status, input selection, and source control state
+- Settings persisted via `roon.save_config()`
 
-- `setup_denon_connection()`: Initializes connection with error handling and event setup
-- `connect()`: Establishes connection and creates control interfaces  
-- Keep-alive mechanism prevents connection timeout
-- Automatic reconnection on connection loss
+### Development Commands
 
-## Version Numbering
+**Installation:**
+```bash
+npm install
+```
 
-**Semantic Versioning Scheme**: `YYYY.MINOR.PATCH`
+**Run the extension:**
+```bash
+node .
+```
+The extension will appear in Roon under Settings → Setup → Extensions and can be added as Volume Control to an output zone.
 
-- **Year (YYYY)**: Major version, updated annually
-- **Minor**: New features, breaking changes, significant enhancements  
-- **Patch**: Bug fixes, small improvements, dependency updates
+**Testing:**
+```bash
+npm test                  # Run all tests
+npm run test:watch        # Run tests in watch mode
+npm run test:coverage     # Run tests with coverage report
+```
 
-**Examples**:
-- `2025.1.0` - First release of year with new features
-- `2025.1.1` - Patch release with bug fixes
-- `2025.2.0` - New minor version with feature additions
-- `2025.8.0` - Multi-Zone Configuration feature
+Test files are located in `test/` directory using Jest framework.
 
-## Multi-Zone Configuration (v2025.8.0+)
+**Debugging:**
+Set DEBUG environment variable to see detailed logs:
+```bash
+DEBUG=roon-extension-denon* node .
+```
 
-**New Features**:
-- Zone selection: Main Zone or Zone 2 control
-- Coordinated power control: Option to power off both zones simultaneously
-- Enhanced settings UI with dropdown controls
-- Comprehensive zone management functions with full test coverage
+### Important Notes
 
-**Zone Configuration Options**:
-- `zone: "main"` - Controls Main Zone (default, full functionality)
-- `zone: "zone2"` - Controls Zone 2 (power-only control)
-- `powerOffBothZones: true` - Powers off both zones when turning off
-
-## Important Notes
-
-- Only supports one Denon client connection at a time (receiver limitation)
-- Connection prevents other Telnet-based applications from connecting
-- Extension ID: `org.pruessmann.roon.denon`
-- Volume range: -79.5 dB to receiver max, 0.5 dB steps
-- Requires receiver network interface to be enabled
-- Zone 2 supports power control only (no volume/source control)
-- Multi-zone coordination available for power operations
+- Receiver only accepts one Telnet connection at a time - running this extension may block other Telnet-based applications
+- Volume values are stored as dB offset from receiver's internal scale (receiver value - 80)
+- Zone 2 does not support volume control via the network API, only power control

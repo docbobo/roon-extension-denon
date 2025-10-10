@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  roon-extension-denon:
+    image: ghcr.io/arthursoares/roon-extension-denon:latest
+    container_name: roon-denon-extension
+    restart: unless-stopped
+    
+    # Network configuration
+    network_mode: host  # Required for Roon discovery to work properly
+    
+    # Optional: Mount volume for persistent configuration
+    volumes:
+      - ./data:/usr/src/app/data
+    
+    # Environment variables (optional)
+    environment:
+      - NODE_ENV=production
+      - DEBUG=roon-extension-denon*  # Enable debug logging
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "pgrep", "-f", "node app.js"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Alternative configuration using bridge network
+  # Use this if you want to isolate the container but may have discovery issues
+  roon-extension-denon-bridge:
+    image: ghcr.io/arthursoares/roon-extension-denon:latest
+    container_name: roon-denon-extension-bridge
+    restart: unless-stopped
+    profiles:
+      - bridge  # Use with: docker-compose --profile bridge up
+    
+    # Bridge network with port mapping (if needed)
+    # ports:
+    #   - "3000:3000"  # Uncomment if the extension exposes a port
+    
+    volumes:
+      - ./data:/usr/src/app/data
+    
+    environment:
+      - NODE_ENV=production
+      # - DEBUG=roon-extension-denon*
+    
+    # DNS configuration for better network discovery
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4

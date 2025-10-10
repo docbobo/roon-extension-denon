@@ -40,6 +40,39 @@ This project provides a Roon Volume Control extension that allows you to control
 
     The extension should appear in Roon now. See Settings->Setup->Extensions and you should see it in the list. Once it has been properly configured, it can be added as 'Volume Control' extension to an existing output zone.
 
+## Docker Installation (Recommended)
+
+For easy deployment, use Docker with the pre-built images:
+
+### Quick Start with Docker Compose
+```bash
+curl -O https://raw.githubusercontent.com/arthursoares/roon-extension-denon/main/docker-compose.yml
+docker-compose up -d
+```
+
+### Quick Start with Docker Run
+```bash
+docker run -d \
+  --name roon-denon-extension \
+  --network host \
+  --restart unless-stopped \
+  -v ./data:/usr/src/app/data \
+  ghcr.io/arthursoares/roon-extension-denon:latest
+```
+
+📖 **See [DOCKER.md](./DOCKER.md) for complete Docker documentation and configuration options.**
+
+## Zone Configuration Features
+
+This enhanced version includes advanced zone control:
+
+- **Zone Selection**: Choose between Main Zone and Zone 2
+- **Dual-Zone Power Control**: Configure whether to turn off both zones or just the selected zone when powering off
+- **Volume Control**: Available for Main Zone (Zone 2 supports power control only due to hardware limitations)
+
+Configure these options in Roon → Settings → Extensions → Denon/Marantz AVR.
+
 ## Notes
 
 * Setups with more than one Roon Core on the network are not currently tested.
+* Zone 2 volume control is not supported due to limitations in the denon-client library.
